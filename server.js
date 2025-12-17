@@ -1,5 +1,6 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+
 const nodemailer = require('nodemailer');
 const path = require('path');
 
