@@ -31,7 +31,7 @@ app.post("/signup", async (req, res) => {
 
   const confirmUrl = `https://${req.headers.host}/confirm/${token}`;
   const mailOptions = {
-  from: "sofiane.amiro@gmail.com", // must match the verified sender
+  from: "sofiane.amiro@gmail.com", // must be verified in SendGrid
   to: email,
   subject: "Confirm your account",
   text: `Click here to confirm: ${confirmUrl}`
