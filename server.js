@@ -13,12 +13,11 @@ let users = [];
 
 // ✅ Brevo SMTP transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
+  host: "smtp.sendgrid.net",
   port: 587,
-  secure: false,
   auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS
+    user: "apikey", // this is literally the string "apikey"
+    pass: process.env.SENDGRID_API_KEY
   }
 });
 
