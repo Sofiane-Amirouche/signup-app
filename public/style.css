@@ -1,0 +1,102 @@
+/* Reset default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* Center everything */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f4f4f9;
+}
+
+/* Main container */
+.container, .dashboard-container {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Headings */
+h1, h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Buttons for switching forms */
+.buttons {
+  margin-bottom: 1.5rem;
+}
+.buttons button {
+  margin: 0 0.3rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.buttons button:hover {
+  background: #0056b3;
+}
+
+/* Forms */
+.form {
+  display: none;
+}
+.form.active {
+  display: block;
+}
+.form input {
+  width: 100%;
+  padding: 0.7rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.form button {
+  width: 100%;
+  padding: 0.7rem;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.form button:hover {
+  background: #218838;
+}
+
+/* Dashboard logout button */
+.dashboard-container button {
+  margin-top: 1rem;
+  padding: 0.7rem 1.2rem;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.dashboard-container button:hover {
+  background: #a71d2a;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .container, .dashboard-container {
+    padding: 1rem;
+    max-width: 90%;
+  }
+  h1, h2 {
+    font-size: 1.2rem;
+  }
+}
