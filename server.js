@@ -31,11 +31,11 @@ app.post("/signup", async (req, res) => {
 
   const confirmUrl = `https://${req.headers.host}/confirm/${token}`;
   const mailOptions = {
-    from: process.env.BREVO_USER,
-    to: email,
-    subject: "Confirm your account",
-    text: `Click here to confirm: ${confirmUrl}`
-  };
+  from: "sofiane.amiro@gmail.com", // must match the verified sender
+  to: email,
+  subject: "Confirm your account",
+  text: `Click here to confirm: ${confirmUrl}`
+};
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
