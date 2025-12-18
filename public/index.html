@@ -2,40 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Signup & Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- required for mobile scaling -->
-  <link rel="stylesheet" href="style.css"> <!-- loads /public/style.css -->
+  <title>Account Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <section class="signup">
-      <h1>Signup</h1>
+    <h1>Account Access</h1>
+
+    <div class="form-section">
+      <h2>Signup</h2>
       <form action="/signup" method="POST">
-        <label for="name">Name</label>
-        <input id="name" name="name" type="text" required>
-
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" required>
-
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" required>
-
-        <button type="submit">Sign Up</button>
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <input type="password" name="password" placeholder="Enter your password" required>
+        <button type="submit">Signup</button>
       </form>
-    </section>
+    </div>
 
-    <section class="login">
-      <h1>Login</h1>
+    <div class="form-section">
+      <h2>Login</h2>
       <form action="/login" method="POST">
-        <label for="login-email">Email</label>
-        <input id="login-email" name="email" type="email" required>
-
-        <label for="login-password">Password</label>
-        <input id="login-password" name="password" type="password" required>
-
-        <button type="submit">Log In</button>
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <input type="password" name="password" placeholder="Enter your password" required>
+        <button type="submit">Login</button>
       </form>
-    </section>
+    </div>
+
+    <div class="form-section">
+      <h2>Forgot Password</h2>
+      <form action="/forgot-password" method="POST">
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <button type="submit">Reset Password</button>
+      </form>
+    </div>
   </div>
 </body>
 </html>

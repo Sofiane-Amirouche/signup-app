@@ -1,93 +1,48 @@
-/* Base page */
 * { box-sizing: border-box; }
-html, body {
-  height: 100%;
-}
+
 body {
   font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
   margin: 0;
-  background: #f4f4f4;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px; /* breathing room on small screens */
+  padding: 0;
 }
 
-/* Card container */
 .container {
-  display: flex;
-  gap: 40px;
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
   background: #fff;
-  padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-  max-width: 1000px;
-  width: 100%;
-  flex-wrap: wrap; /* allows wrapping on narrow screens */
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 
-/* Panels */
-.signup, .login {
-  flex: 1 1 360px; /* grows, minimum 360px */
-  min-width: 280px; /* prevents too-narrow inputs */
-}
+h1 { text-align: center; margin-bottom: 30px; }
 
-/* Headings */
-h1 {
-  font-size: 22px;
-  margin: 0 0 16px;
-  text-align: center;
-}
+.form-section { margin-bottom: 30px; }
 
-/* Form layout */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+form { display: flex; flex-direction: column; }
 
-/* Labels & inputs */
-label {
-  font-size: 14px;
-  color: #333;
-}
-input {
-  padding: 10px 12px;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  font-size: 16px;
-}
-
-/* Buttons */
-button {
+input, button {
   padding: 12px;
-  background: #007bff;
-  color: #fff;
-  border: 0;
-  border-radius: 6px;
+  margin: 8px 0;
   font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border: none;
   cursor: pointer;
 }
-button:hover { background: #005fcc; }
 
-/* Breakpoints */
-@media (max-width: 1024px) {
-  .container { gap: 24px; padding: 24px; }
-}
+button:hover { background-color: #0056b3; }
 
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column; /* stack panels vertically */
-    align-items: stretch;
-  }
-  .signup, .login {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  body { padding: 12px; }
-  .container { padding: 16px; border-radius: 8px; }
-  input, button { font-size: 15px; padding: 10px; }
-  h1 { font-size: 20px; }
+@media (max-width: 600px) {
+  .container { margin: 20px; padding: 15px; }
+  input, button { font-size: 14px; padding: 10px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
 }
