@@ -6,20 +6,23 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// ✅ Set your SendGrid API key from environment variables
+// ✅ Set SendGrid API key from environment
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// ✅ Root route
+app.get("/", (req, res) => {
+  res.send("Welcome to the signup app! Use /signup to create an account.");
+});
 
 // ✅ Signup route
 app.post("/signup", async (req, res) => {
   const { email, password } = req.body;
 
-  // Normally you’d save the user to a database here
-
   const confirmUrl = `https://signup-app-1-c6qs.onrender.com/confirm?email=${email}`;
 
   const msg = {
-    to: email, // the signup email address
-    from: "sofiane.amiro@gmail.com", // must match your verified sender in SendGrid
+    to: email,
+    from: "sofiane.amiro@gmail.com", // must match verified sender in SendGrid
     subject: "Confirm your account",
     text: `Click here to confirm your account: ${confirmUrl}`
   };
@@ -34,6 +37,12 @@ app.post("/signup", async (req, res) => {
     console.error("Error sending email:", error);
     res.status(500).send("Error sending confirmation email");
   }
+});
+
+// ✅ Confirmation route
+app.get("/confirm", (req, res) => {
+  const { email } = req.query;
+  res.send(`Account confirmed for ${email}!`);
 });
 
 // ✅ Start server
