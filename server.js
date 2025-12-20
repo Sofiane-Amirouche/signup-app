@@ -176,7 +176,7 @@ app.post("/forgot-password", async (req, res) => {
 
   const msg = {
     to: email,
-    from: "your_verified_sender@example.com",
+    from: "sofiane.amiro@gmail.com.com",
     subject: "Password Reset",
     html: resetEmailTemplate(token, PORT)
   };
