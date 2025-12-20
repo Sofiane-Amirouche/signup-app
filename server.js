@@ -1,111 +1,218 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const session = require("express-session");
 const sgMail = require("@sendgrid/mail");
-const bcrypt = require("bcrypt");
-const sqlite3 = require("sqlite3").verbose();
+const { Pool } = require("pg");
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+const PORT = 3000;
 
-// Serve static files (index.html + style.css)
-app.use(express.static("public"));
-
-// Configure SendGrid
+// ✅ Configure SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// SQLite database setup
-const db = new sqlite3.Database("./users.db");
+// ✅ PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
-// Create table if not exists
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    email TEXT PRIMARY KEY,
-    password TEXT,
-    confirmed INTEGER
-  )
-`);
+// ✅ Create users table if not exists
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      email TEXT PRIMARY KEY,
+      password TEXT NOT NULL,
+      confirmed BOOLEAN DEFAULT FALSE,
+      resetToken TEXT
+    );
+  `);
+}
+initDB();
 
-// Signup route
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+// ✅ SESSION CONFIG
+app.use(
+  session({
+    secret: "supersecretkey123",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
+  })
+);
+
+// ✅ MIDDLEWARE: PROTECT DASHBOARD
+function requireLogin(req, res, next) {
+  if (!req.session.user) return res.redirect("/");
+  next();
+}
+
+// ✅ HTML EMAIL TEMPLATES
+function confirmationEmailTemplate(email, port) {
+  return `
+  <div style="font-family: Arial; padding: 20px;">
+    <h2>Welcome!</h2>
+    <p>Click the button below to confirm your account:</p>
+    <a href="http://localhost:${port}/confirm?email=${email}"
+       style="display:inline-block;padding:10px 20px;background:#007bff;color:white;text-decoration:none;border-radius:5px;">
+       Confirm Account
+    </a>
+    <p>If the button doesn't work, use this link:</p>
+    <p>http://localhost:${port}/confirm?email=${email}</p>
+  </div>
+  `;
+}
+
+function resetEmailTemplate(token, port) {
+  return `
+  <div style="font-family: Arial; padding: 20px;">
+    <h2>Password Reset</h2>
+    <p>Click the button below to reset your password:</p>
+    <a href="http://localhost:${port}/reset-password.html?token=${token}"
+       style="display:inline-block;padding:10px 20px;background:#dc3545;color:white;text-decoration:none;border-radius:5px;">
+       Reset Password
+    </a>
+    <p>If the button doesn't work, use this link:</p>
+    <p>http://localhost:${port}/reset-password.html?token=${token}</p>
+  </div>
+  `;
+}
+
+// ✅ SIGNUP
 app.post("/signup", async (req, res) => {
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    await pool.query(
+      "INSERT INTO users (email, password, confirmed) VALUES ($1, $2, false)",
+      [email, hashedPassword]
+    );
 
-  // Insert user into DB with confirmed=0
-  db.run(
-    "INSERT OR REPLACE INTO users (email, password, confirmed) VALUES (?, ?, ?)",
-    [email, hashedPassword, 0],
-    async (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Error saving user.");
-      }
+    const msg = {
+      to: email,
+      from: "your_verified_sender@example.com",
+      subject: "Confirm your account",
+      html: confirmationEmailTemplate(email, PORT)
+    };
 
-      const confirmUrl = `https://signup-app-1-c6qs.onrender.com/confirm?email=${encodeURIComponent(email)}`;
-
-      const msg = {
-        to: email,
-        from: "sofiane.amiro@gmail.com", // must match verified sender in SendGrid
-        subject: "Confirm your account",
-        html: `<p>Click here to confirm your account:</p><a href="${confirmUrl}">${confirmUrl}</a>`
-      };
-
-      try {
-        await sgMail.send(msg);
-        console.log("Email sent successfully to:", email);
-        res.send("Signup successful! Check your email to confirm.");
-      } catch (error) {
-        console.error("Error sending email:", error);
-        res.status(500).send("Error sending confirmation email.");
-      }
-    }
-  );
+    await sgMail.send(msg);
+    res.send("✅ Signup successful! Check your email to confirm.");
+  } catch (err) {
+    res.send("❌ Signup failed: " + err.message);
+  }
 });
 
-// Confirmation route
-app.get("/confirm", (req, res) => {
+// ✅ EMAIL CONFIRMATION
+app.get("/confirm", async (req, res) => {
   const { email } = req.query;
-  db.run("UPDATE users SET confirmed = 1 WHERE email = ?", [email], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send("Error confirming account.");
-    }
-    res.send(`✅ Account confirmed for ${email}! You can now log in.`);
-  });
+
+  const result = await pool.query(
+    "UPDATE users SET confirmed = true WHERE email = $1",
+    [email]
+  );
+
+  if (result.rowCount === 0) return res.send("❌ Confirmation failed");
+
+  res.send(`✅ Account confirmed for ${email}`);
 });
 
-// Login route
-app.post("/login", (req, res) => {
+// ✅ LOGIN (WITH SESSION)
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send("Error fetching user.");
-    }
-    if (!user) {
-      return res.status(400).send("User not found.");
-    }
-    if (!user.confirmed) {
-      return res.status(400).send("Please confirm your email before logging in.");
-    }
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+    email
+  ]);
 
-    const match = await bcrypt.compare(password, user.password);
-    if (match) {
-      res.send(`✅ Login successful! Welcome back, ${email}.`);
-    } else {
-      res.status(400).send("Invalid password.");
-    }
-  });
+  if (result.rowCount === 0) return res.send("❌ User not found");
+
+  const user = result.rows[0];
+
+  if (!user.confirmed) return res.send("❌ Please confirm your email first");
+
+  if (!bcrypt.compareSync(password, user.password))
+    return res.send("❌ Incorrect password");
+
+  req.session.user = { email: user.email };
+  res.redirect("/dashboard");
 });
 
-// Forgot password route (placeholder)
-app.post("/forgot-password", (req, res) => {
-  res.send("Password reset route not yet implemented.");
+// ✅ PROTECTED DASHBOARD
+app.get("/dashboard", requireLogin, (req, res) => {
+  res.send(`
+    <html>
+      <head><link rel="stylesheet" href="style.css"></head>
+      <body>
+        <div class="container">
+          <h1>Welcome, ${req.session.user.email}</h1>
+          <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+      </body>
+    </html>
+  `);
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ SESSION INFO
+app.get("/session-info", (req, res) => {
+  if (!req.session.user) return res.json({ email: "Unknown" });
+  res.json({ email: req.session.user.email });
+});
+
+// ✅ FORGOT PASSWORD
+app.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const result = await pool.query(
+    "UPDATE users SET resetToken = $1 WHERE email = $2",
+    [token, email]
+  );
+
+  if (result.rowCount === 0) return res.send("❌ Email not found");
+
+  const msg = {
+    to: email,
+    from: "your_verified_sender@example.com",
+    subject: "Password Reset",
+    html: resetEmailTemplate(token, PORT)
+  };
+
+  await sgMail.send(msg);
+  res.send("✅ Reset email sent");
+});
+
+// ✅ RESET PASSWORD
+app.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  const result = await pool.query(
+    "SELECT email FROM users WHERE resetToken = $1",
+    [token]
+  );
+
+  if (result.rowCount === 0) return res.send("❌ Invalid or expired token");
+
+  const email = result.rows[0].email;
+  const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+  await pool.query(
+    "UPDATE users SET password = $1, resetToken = NULL WHERE email = $2",
+    [hashedPassword, email]
+  );
+
+  res.send("✅ Password reset successful");
+});
+
+// ✅ LOGOUT
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/"));
+});
+
+// ✅ START SERVER
+app.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+});

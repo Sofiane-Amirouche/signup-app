@@ -1,5 +1,9 @@
-* { box-sizing: border-box; }
+/* Global reset */
+* {
+  box-sizing: border-box;
+}
 
+/* Body styling */
 body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
@@ -7,6 +11,7 @@ body {
   padding: 0;
 }
 
+/* Main container */
 .container {
   max-width: 400px;
   margin: 40px auto;
@@ -16,13 +21,25 @@ body {
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 
-h1 { text-align: center; margin-bottom: 30px; }
+/* Titles */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
 
-.form-section { margin-bottom: 30px; }
+.form-section {
+  margin-bottom: 30px;
+}
 
-form { display: flex; flex-direction: column; }
+/* Form layout */
+form {
+  display: flex;
+  flex-direction: column;
+}
 
-input, button {
+/* Inputs + buttons */
+input,
+button {
   padding: 12px;
   margin: 8px 0;
   font-size: 16px;
@@ -30,6 +47,7 @@ input, button {
   border-radius: 6px;
 }
 
+/* Main buttons */
 button {
   background-color: #007bff;
   color: white;
@@ -38,11 +56,88 @@ button {
   cursor: pointer;
 }
 
-button:hover { background-color: #0056b3; }
+button:hover {
+  background-color: #0056b3;
+}
 
+/* ✅ Logout button */
+.logout-btn {
+  display: inline-block;
+  padding: 12px;
+  background-color: #d9534f;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 6px;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.logout-btn:hover {
+  background-color: #c9302c;
+}
+
+/* ✅ Success message */
+.success {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #c3e6cb;
+  margin: 10px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ✅ Error message */
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+  margin: 10px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Mobile responsiveness */
 @media (max-width: 600px) {
-  .container { margin: 20px; padding: 15px; }
-  input, button { font-size: 14px; padding: 10px; }
-  h1 { font-size: 22px; }
-  h2 { font-size: 18px; }
+  .container {
+    margin: 20px;
+    padding: 15px;
+  }
+
+  input,
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+}
+.dashboard-box {
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.welcome-text {
+  font-size: 18px;
+  color: #333;
+}
+
+.user-email {
+  font-size: 20px;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 20px;
 }
