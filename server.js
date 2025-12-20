@@ -189,7 +189,7 @@ app.post("/forgot-password", async (req, res) => {
   res.send("✅ Reset email sent");
 });
 
-// ✅ RESET PASSWORD (THE ROUTE RENDER IS COMPLAINING ABOUT)
+// ✅ RESET PASSWORD
 app.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
 
