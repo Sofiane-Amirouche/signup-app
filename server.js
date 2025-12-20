@@ -7,7 +7,7 @@ const sgMail = require("@sendgrid/mail");
 const { Pool } = require("pg");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // ✅ Configure SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -40,43 +40,43 @@ app.use(
     secret: "supersecretkey123",
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
+    cookie: { maxAge: 1000 * 60 * 60 }
   })
 );
 
-// ✅ MIDDLEWARE: PROTECT DASHBOARD
+// ✅ PROTECT DASHBOARD
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect("/");
   next();
 }
 
 // ✅ HTML EMAIL TEMPLATES
-function confirmationEmailTemplate(email, port) {
+function confirmationEmailTemplate(email, domain) {
   return `
   <div style="font-family: Arial; padding: 20px;">
     <h2>Welcome!</h2>
     <p>Click the button below to confirm your account:</p>
-    <a href="http://localhost:${port}/confirm?email=${email}"
+    <a href="${domain}/confirm?email=${email}"
        style="display:inline-block;padding:10px 20px;background:#007bff;color:white;text-decoration:none;border-radius:5px;">
        Confirm Account
     </a>
     <p>If the button doesn't work, use this link:</p>
-    <p>http://localhost:${port}/confirm?email=${email}</p>
+    <p>${domain}/confirm?email=${email}</p>
   </div>
   `;
 }
 
-function resetEmailTemplate(token, port) {
+function resetEmailTemplate(token, domain) {
   return `
   <div style="font-family: Arial; padding: 20px;">
     <h2>Password Reset</h2>
     <p>Click the button below to reset your password:</p>
-    <a href="http://localhost:${port}/reset-password.html?token=${token}"
+    <a href="${domain}/reset-password.html?token=${token}"
        style="display:inline-block;padding:10px 20px;background:#dc3545;color:white;text-decoration:none;border-radius:5px;">
        Reset Password
     </a>
     <p>If the button doesn't work, use this link:</p>
-    <p>http://localhost:${port}/reset-password.html?token=${token}</p>
+    <p>${domain}/reset-password.html?token=${token}</p>
   </div>
   `;
 }
@@ -92,11 +92,13 @@ app.post("/signup", async (req, res) => {
       [email, hashedPassword]
     );
 
+    const domain = process.env.DOMAIN_URL;
+
     const msg = {
       to: email,
-      from: "your_verified_sender@example.com",
+      from: process.env.SENDGRID_FROM,
       subject: "Confirm your account",
-      html: confirmationEmailTemplate(email, PORT)
+      html: confirmationEmailTemplate(email, domain)
     };
 
     await sgMail.send(msg);
@@ -106,7 +108,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// ✅ EMAIL CONFIRMATION
+// ✅ CONFIRM EMAIL
 app.get("/confirm", async (req, res) => {
   const { email } = req.query;
 
@@ -120,7 +122,7 @@ app.get("/confirm", async (req, res) => {
   res.send(`✅ Account confirmed for ${email}`);
 });
 
-// ✅ LOGIN (WITH SESSION)
+// ✅ LOGIN
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -141,7 +143,7 @@ app.post("/login", async (req, res) => {
   res.redirect("/dashboard");
 });
 
-// ✅ PROTECTED DASHBOARD
+// ✅ DASHBOARD
 app.get("/dashboard", requireLogin, (req, res) => {
   res.send(`
     <html>
@@ -174,18 +176,20 @@ app.post("/forgot-password", async (req, res) => {
 
   if (result.rowCount === 0) return res.send("❌ Email not found");
 
+  const domain = process.env.DOMAIN_URL;
+
   const msg = {
     to: email,
-    from: "sofiane.amiro@gmail.com.com",
+    from: process.env.SENDGRID_FROM,
     subject: "Password Reset",
-    html: resetEmailTemplate(token, PORT)
+    html: resetEmailTemplate(token, domain)
   };
 
   await sgMail.send(msg);
   res.send("✅ Reset email sent");
 });
 
-// ✅ RESET PASSWORD
+// ✅ RESET PASSWORD (THE ROUTE RENDER IS COMPLAINING ABOUT)
 app.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
 
@@ -214,5 +218,5 @@ app.get("/logout", (req, res) => {
 
 // ✅ START SERVER
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
